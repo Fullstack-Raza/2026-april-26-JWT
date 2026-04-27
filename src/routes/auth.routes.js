@@ -20,12 +20,12 @@ authRouter.post("/register", async (req, res) => {
   const token = jwt.sign(
     {
       id: user._id,
-      email:user.email
+      email: user.email,
     },
     process.env.JWT_secrets,
   );
 
-  res.cookie("JWt_token",token)
+  res.cookie("JWt_token", token);
   res.status(201).json({
     massage: "user registered",
     user,
@@ -33,4 +33,37 @@ authRouter.post("/register", async (req, res) => {
   });
 });
 
+authRouter.post("/protected", (req, res) => {
+  console.log(req.cookies);
+  res.status(200).json({
+    massage: "right",
+  });
+});
+
+authRouter.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await usermodel.findOne({ email });
+  if (!user) {
+    return res.status(404).json({
+      message: "user not found!",
+    });
+  }
+  const isPasswordMatched = user.password === password;
+  if (!isPasswordMatched) {
+    return res.status(401).json({
+      message: "invalid password",
+    });
+  }
+  const token = jwt.sign(
+    {
+      id: user._id,
+    },
+    process.env.JWT_secrets,
+  );
+  res.cookie("JWt_token", token);
+  res.status(200).json({
+    message: "user loged in",
+    user,
+  });
+});
 module.exports = authRouter;
